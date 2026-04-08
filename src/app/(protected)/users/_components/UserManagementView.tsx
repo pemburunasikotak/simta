@@ -61,13 +61,23 @@ export default function UserManagementView({ roleType }: { roleType?: "Mahasiswa
     const { enqueueSnackbar } = useSnackbar();
     const [allUsers, setAllUsers] = useState<any[]>([]);
     const [userDosen, setUserDosen] = useState<any[]>([]);
+    console.log('CEK CEK USER DOSEN', userDosen)
     const [loading, setLoading] = useState(true);
+
+    const getDosenName = (id: number | null | string) => {
+        if (!id) return null;
+        const dosen = userDosen.find((d) => d.id_referensi === Number(id));
+        return dosen ? dosen.name : "Memuat...";
+    };
     const [open, setOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<any | null>(null);
     const [search, setSearch] = useState("");
     const [roleFilter, setRoleFilter] = useState<string | null>(null);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    const showPembimbing = roleType !== "Dosen" && roleType !== "Administrasi" && roleFilter !== "Dosen" && roleFilter !== "Administrasi";
+    const columnCount = showPembimbing ? 7 : 6;
 
     const [formName, setFormName] = useState("");
     const [formEmail, setFormEmail] = useState("");
@@ -79,6 +89,7 @@ export default function UserManagementView({ roleType }: { roleType?: "Mahasiswa
     const [formPassword, setFormPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [formDosenPembimbing, setFormDosenPembimbing] = useState("");
+    const [formDosenPembimbing2, setFormDosenPembimbing2] = useState("");
     const [formKuotaBimbingan, setFormKuotaBimbingan] = useState(10);
 
     // Ambil semua data sekaligus, tanpa filter role ke API
@@ -132,6 +143,7 @@ export default function UserManagementView({ roleType }: { roleType?: "Mahasiswa
         setFormPassword("");
         setShowPassword(false);
         setFormDosenPembimbing("");
+        setFormDosenPembimbing2("");
         setFormKuotaBimbingan(10);
         setOpen(true);
     };
@@ -151,6 +163,7 @@ export default function UserManagementView({ roleType }: { roleType?: "Mahasiswa
         setFormPassword("");
         setShowPassword(false);
         setFormDosenPembimbing(user.id_pembimbing_utama || "");
+        setFormDosenPembimbing2(user.id_pembimbing_kedua || "");
         setFormKuotaBimbingan(user.kuota_bimbingan || 10);
         setOpen(true);
     };
@@ -170,7 +183,10 @@ export default function UserManagementView({ roleType }: { roleType?: "Mahasiswa
             identity_number: formIdentityNumber,
             department: finalDepartment,
             ...(formPassword && { password: formPassword }),
-            ...(formRole === "Mahasiswa" && { id_pembimbing_utama: formDosenPembimbing }),
+            ...(formRole === "Mahasiswa" && {
+                id_pembimbing_utama: formDosenPembimbing || null,
+                id_pembimbing_kedua: formDosenPembimbing2 || null
+            }),
             ...(formRole === "Dosen" && { kuota_bimbingan: formKuotaBimbingan }),
         };
 
@@ -284,6 +300,7 @@ export default function UserManagementView({ roleType }: { roleType?: "Mahasiswa
                             <TableCell><strong>Username</strong></TableCell>
                             <TableCell><strong>Email</strong></TableCell>
                             <TableCell><strong>NIM / NIP</strong></TableCell>
+                            {showPembimbing && <TableCell><strong>Pembimbing</strong></TableCell>}
                             <TableCell><strong>Role</strong></TableCell>
                             <TableCell align="center"><strong>Aksi</strong></TableCell>
                         </TableRow>
@@ -292,14 +309,14 @@ export default function UserManagementView({ roleType }: { roleType?: "Mahasiswa
                         {loading ? (
                             Array.from({ length: rowsPerPage }).map((_, i) => (
                                 <TableRow key={i}>
-                                    {Array.from({ length: 6 }).map((_, j) => (
+                                    {Array.from({ length: columnCount }).map((_, j) => (
                                         <TableCell key={j}><Skeleton variant="text" /></TableCell>
                                     ))}
                                 </TableRow>
                             ))
                         ) : paginatedUsers.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} align="center" sx={{ py: 6, color: "text.secondary" }}>
+                                <TableCell colSpan={columnCount} align="center" sx={{ py: 6, color: "text.secondary" }}>
                                     <PeopleOutlined sx={{ fontSize: 40, mb: 1, opacity: 0.3, display: "block", mx: "auto" }} />
                                     <Typography variant="body2">Tidak ada data user</Typography>
                                 </TableCell>
@@ -308,6 +325,7 @@ export default function UserManagementView({ roleType }: { roleType?: "Mahasiswa
                             paginatedUsers?.map((user) => {
                                 const role = user?.role || user?.roles?.[0]?.key || "Mahasiswa";
                                 const config = ROLE_CONFIG[role] || ROLE_CONFIG.Mahasiswa;
+                                console.log('CEK CEK MASUK MASUK', user)
                                 return (
                                     <TableRow key={user.id} hover>
                                         <TableCell>
@@ -331,6 +349,24 @@ export default function UserManagementView({ roleType }: { roleType?: "Mahasiswa
                                                 {user.identity_number || "-"}
                                             </Typography>
                                         </TableCell>
+                                        {showPembimbing && (
+                                            <TableCell>
+                                                {role === "Mahasiswa" ? (
+                                                    <Box>
+                                                        <Typography variant="caption" display="block" color="text.primary" sx={{ fontWeight: 500 }}>
+                                                            1. {getDosenName(user.id_pembimbing_utama) + " (Pembimbing Utama)" || "-"}
+                                                        </Typography>
+                                                        {user.id_pembimbing_kedua && (
+                                                            <Typography variant="caption" display="block" color="text.secondary">
+                                                                2. {getDosenName(user.id_pembimbing_kedua) + " (Pembimbing Kedua)" || "-"}
+                                                            </Typography>
+                                                        )}
+                                                    </Box>
+                                                ) : (
+                                                    <Typography variant="caption" color="text.disabled">-</Typography>
+                                                )}
+                                            </TableCell>
+                                        )}
                                         <TableCell>
                                             <Chip
                                                 icon={config.icon as any}
@@ -439,21 +475,38 @@ export default function UserManagementView({ roleType }: { roleType?: "Mahasiswa
                             }}
                         />
                         {formRole === "Mahasiswa" && (
-                            <TextField
-                                label="Dosen Pembimbing Utama"
-                                select
-                                fullWidth
-                                value={formDosenPembimbing}
-                                onChange={(e) => setFormDosenPembimbing(e.target.value)}
-                            >
-                                <MenuItem value="">-- Tidak ada --</MenuItem>
-                                {userDosen
-                                    .map((dosen) => (
+                            <>
+                                <TextField
+                                    label="Dosen Pembimbing Utama (Wajib)"
+                                    select
+                                    fullWidth
+                                    value={formDosenPembimbing}
+                                    onChange={(e) => setFormDosenPembimbing(e.target.value)}
+                                    required
+                                >
+                                    <MenuItem value="">-- Pilih Dosen --</MenuItem>
+                                    {userDosen.map((dosen) => (
                                         <MenuItem key={dosen.id_referensi} value={dosen.id_referensi}>
                                             {dosen.name} - {dosen.identity_number || "Tidak ada NIDN"}
                                         </MenuItem>
                                     ))}
-                            </TextField>
+                                </TextField>
+
+                                <TextField
+                                    label="Dosen Pembimbing Kedua (Opsional)"
+                                    select
+                                    fullWidth
+                                    value={formDosenPembimbing2}
+                                    onChange={(e) => setFormDosenPembimbing2(e.target.value)}
+                                >
+                                    <MenuItem value="">-- Tidak ada --</MenuItem>
+                                    {userDosen.filter(d => d.id_referensi !== formDosenPembimbing).map((dosen) => (
+                                        <MenuItem key={dosen.id_referensi} value={dosen.id_referensi}>
+                                            {dosen.name} - {dosen.identity_number || "Tidak ada NIDN"}
+                                        </MenuItem>
+                                    ))}
+                                </TextField>
+                            </>
                         )}
                         {formRole === "Dosen" && (
                             <TextField

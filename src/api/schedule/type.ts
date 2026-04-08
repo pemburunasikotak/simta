@@ -24,6 +24,8 @@ export const scheduleSchema = z.object({
     studentEmail: z.string().optional(),
     pembimbingId: z.union([z.string(), z.number()]).optional(),
     pembimbingName: z.string().optional(),
+    pembimbingKeduaId: z.union([z.string(), z.number()]).optional(),
+    pembimbingKeduaName: z.string().optional(),
     examiners: z.array(examinerSchema),
 });
 

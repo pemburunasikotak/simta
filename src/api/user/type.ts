@@ -7,6 +7,7 @@ export type TUserItem = {
   password?: string;
   role: "Administrasi" | "Dosen" | "Mahasiswa";
   id_referensi: number;
+  id_referensi_kedua?: number | null;
   last_login?: string;
 
   // Custom joined fields
@@ -16,6 +17,7 @@ export type TUserItem = {
   department?: string;
   kuota_bimbingan?: number;
   id_pembimbing_utama?: number | null;
+  id_pembimbing_kedua?: number | null;
 
   roles?: any[];
 };
@@ -30,6 +32,8 @@ export type TUserCreateRequest = {
   department?: string; // Prodi or Bagian
   kuota_bimbingan?: number; // Only for Dosen
   id_pembimbing_utama?: number | null; // Only for Mahasiswa
+  id_pembimbing_kedua?: number | null; // Only for Mahasiswa
+  id_referensi_kedua?: number | null; // Generic reference
 };
 
 export type TUserUpdateRequest = Partial<TUserCreateRequest>;

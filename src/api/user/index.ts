@@ -30,7 +30,7 @@ export const getUsers = async (params: TGetUsersParams): Promise<TUserPaginateRe
       detail = { name: data?.nama_dosen, email: data?.email, identity_number: data?.nidn, kuota_bimbingan: data?.kuota_bimbingan };
     } else if (u.role === "Mahasiswa") {
       const { data } = await supabase.from("mahasiswa").select("*").eq("id_mhs", u.id_referensi).single();
-      detail = { name: data?.nama_mhs, email: data?.email, identity_number: data?.nim, department: data?.prodi, id_pembimbing_utama: data?.id_pembimbing_utama };
+      detail = { name: data?.nama_mhs, email: data?.email, identity_number: data?.nim, department: data?.prodi, id_pembimbing_utama: data?.id_pembimbing_utama, id_pembimbing_kedua: data?.id_pembimbing_kedua };
     } else if (u.role === "Administrasi") {
       const { data } = await supabase.from("administrasi").select("*").eq("id_admin", u.id_referensi).single();
       detail = { name: data?.nama_admin, email: data?.email, identity_number: data?.nip, department: data?.bagian };
@@ -42,12 +42,14 @@ export const getUsers = async (params: TGetUsersParams): Promise<TUserPaginateRe
       username: u.username,
       role: u.role,
       id_referensi: u.id_referensi,
+      id_referensi_kedua: u.id_referensi_kedua,
       name: detail.name || "-",
       email: detail.email || "-",
       identity_number: detail.identity_number || "-",
       department: detail.department || "-",
       kuota_bimbingan: detail.kuota_bimbingan,
       id_pembimbing_utama: detail.id_pembimbing_utama,
+      id_pembimbing_kedua: detail.id_pembimbing_kedua,
       roles: [{ id: u.role, key: u.role, name: u.role, permissions: [] }],
     };
   }));
@@ -82,7 +84,7 @@ export const getUser = async (id: string): Promise<TUserDetailResponse> => {
     detail = { name: data?.nama_dosen, email: data?.email, identity_number: data?.nidn, kuota_bimbingan: data?.kuota_bimbingan };
   } else if (u.role === "Mahasiswa") {
     const { data } = await supabase.from("mahasiswa").select("*").eq("id_mhs", u.id_referensi).single();
-    detail = { name: data?.nama_mhs, email: data?.email, identity_number: data?.nim, department: data?.prodi, id_pembimbing_utama: data?.id_pembimbing_utama };
+    detail = { name: data?.nama_mhs, email: data?.email, identity_number: data?.nim, department: data?.prodi, id_pembimbing_utama: data?.id_pembimbing_utama, id_pembimbing_kedua: data?.id_pembimbing_kedua };
   } else if (u.role === "Administrasi") {
     const { data } = await supabase.from("administrasi").select("*").eq("id_admin", u.id_referensi).single();
     detail = { name: data?.nama_admin, email: data?.email, identity_number: data?.nip, department: data?.bagian };
@@ -98,12 +100,14 @@ export const getUser = async (id: string): Promise<TUserDetailResponse> => {
       username: u.username,
       role: u.role,
       id_referensi: u.id_referensi,
+      id_referensi_kedua: u.id_referensi_kedua,
       name: detail.name || "-",
       email: detail.email || "-",
       identity_number: detail.identity_number || "-",
       department: detail.department || "-",
       kuota_bimbingan: detail.kuota_bimbingan,
       id_pembimbing_utama: detail.id_pembimbing_utama,
+      id_pembimbing_kedua: detail.id_pembimbing_kedua,
       roles: [{
         id: u.role,
         key: u.role,
@@ -133,6 +137,7 @@ export const createUser = async (data: TUserCreateRequest): Promise<TResponse<nu
       email: data.email,
       prodi: data.department,
       id_pembimbing_utama: data.id_pembimbing_utama || null,
+      id_pembimbing_kedua: data.id_pembimbing_kedua || null,
     }).select("id_mhs").single();
     if (mError) throw mError;
     id_referensi = mData.id_mhs;
@@ -153,6 +158,7 @@ export const createUser = async (data: TUserCreateRequest): Promise<TResponse<nu
     password: data.password || "password123",
     role: data.role,
     id_referensi: id_referensi,
+    id_referensi_kedua: data.role === "Mahasiswa" ? data.id_pembimbing_kedua : null,
   });
 
   if (userError) throw userError;
@@ -180,6 +186,7 @@ export const updateUser = async (id: string, data: TUserUpdateRequest): Promise<
       prodi: data.department,
       email: data.email,
       id_pembimbing_utama: data.id_pembimbing_utama || null,
+      id_pembimbing_kedua: data.id_pembimbing_kedua || null,
     }).eq("id_mhs", user.id_referensi);
     if (error) throw error;
   } else if (user.role === "Administrasi") {
@@ -197,6 +204,9 @@ export const updateUser = async (id: string, data: TUserUpdateRequest): Promise<
     const upData: any = {};
     if (data.username) upData.username = data.username;
     if (data.password) upData.password = data.password;
+    if (data.role === "Mahasiswa" && data.id_pembimbing_kedua !== undefined) {
+      upData.id_referensi_kedua = data.id_pembimbing_kedua;
+    }
     const { error } = await supabase.from("users").update(upData).eq("id_user", user.id_user);
     if (error) throw error;
   }

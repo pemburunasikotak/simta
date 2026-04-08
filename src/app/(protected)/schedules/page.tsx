@@ -109,17 +109,20 @@ function ScheduleDetailDialog({
                         <Typography variant="caption" color="text.secondary" fontWeight={600} textTransform="uppercase">
                             Mahasiswa
                         </Typography>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mt: 0.5 }}>
+                        <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mt: 0.5 }}>
                             <Avatar sx={{ width: 32, height: 32, bgcolor: "#1976d2", fontSize: 13 }}>
                                 {schedule.studentName?.charAt(0)}
                             </Avatar>
                             <Box>
                                 <Typography variant="body2" fontWeight={600}>{schedule.studentName}</Typography>
                                 <Typography variant="caption" color="text.secondary" display="block">
-                                    Pembimbing: {schedule.pembimbingName || "-"}
+                                    Pembimbing Utama: {schedule.pembimbingName || "-"}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary" display="block">
+                                    Pembimbing Kedua: {schedule.pembimbingKeduaName || "-"}
                                 </Typography>
                                 {schedule.studentEmail && (
-                                    <Typography variant="caption" color="text.secondary">{schedule.studentEmail}</Typography>
+                                    <Typography variant="caption" color="text.secondary" display="block">{schedule.studentEmail}</Typography>
                                 )}
                             </Box>
                         </Box>
@@ -179,7 +182,7 @@ function ScheduleDetailDialog({
                             {schedule.examiners?.map((examiner, idx) => {
                                 const roleConfig = ROLE_CONFIG[examiner.role || ""] || ROLE_CONFIG["Penguji"];
                                 return (
-                                    <Box key={idx} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                    <Box key={idx} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                                         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                                             <Avatar sx={{ width: 32, height: 32, bgcolor: "#7b1fa2", fontSize: 13 }}>
                                                 {examiner.name?.charAt(0)}
@@ -238,7 +241,7 @@ function ScheduleDetailDialog({
                 </Stack>
             </DialogContent>
 
-            <DialogActions sx={{ p: 2 }}>
+            <DialogActions sx={{ p: 2, justifyContent: "flex-start" }}>
                 <Button onClick={onClose} variant="outlined" color="inherit">Tutup</Button>
             </DialogActions>
         </Dialog>
@@ -271,16 +274,16 @@ export default function SchedulePage() {
 
     const filteredSchedules = useMemo(() => {
         if (!session?.user) return [];
-        
+
         const role = session.user.role || session.user.roles?.[0]?.key;
         const refId = session.user.id_referensi;
-        
+
         let roleSchedules = schedules;
         if (role === "Mahasiswa") {
             roleSchedules = schedules.filter(s => s.studentId === refId);
         } else if (role === "Dosen") {
-            roleSchedules = schedules.filter(s => 
-                s.pembimbingId === refId || 
+            roleSchedules = schedules.filter(s =>
+                s.pembimbingId === refId ||
                 s.examiners.some(ex => ex.id === refId)
             );
         }
@@ -381,8 +384,8 @@ export default function SchedulePage() {
                     ))
                 ) : filteredSchedules.length === 0 ? (
                     <Grid size={{ xs: 12 }}>
-                        <Box sx={{ textAlign: "center", py: 8 }}>
-                            <CalendarTodayOutlined sx={{ fontSize: 48, opacity: 0.2, mb: 1, display: "block", mx: "auto" }} />
+                        <Box sx={{ textAlign: "left", py: 8 }}>
+                            <CalendarTodayOutlined sx={{ fontSize: 48, opacity: 0.2, mb: 1, display: "block" }} />
                             <Typography color="text.secondary">
                                 Tidak ada jadwal untuk {filterLabel[dateFilter].toLowerCase()}
                                 {dateFilter === "custom" && ` (${toLocalDate(customDate)})`}.
@@ -393,6 +396,8 @@ export default function SchedulePage() {
                     filteredSchedules.map((schedule) => {
                         const typeConfig = TYPE_CONFIG[schedule.type || ""] || TYPE_CONFIG["Sidang Proposal"];
                         const statusConfig = STATUS_CONFIG[schedule.status || ""] || STATUS_CONFIG["Belum"];
+
+                        console.log('CEK MASUK DI SINI', schedule)
                         return (
                             <Grid size={{ xs: 12, md: 6 }} key={schedule.id}>
                                 <Card
@@ -410,7 +415,7 @@ export default function SchedulePage() {
                                     }}
                                 >
                                     <CardContent sx={{ p: 3 }}>
-                                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                                        <Box sx={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-start", gap: 2, mb: 1 }}>
                                             <Typography variant="h6" fontWeight="bold" color="primary" sx={{ flex: 1, mr: 1 }}>
                                                 {schedule.title}
                                             </Typography>
@@ -427,12 +432,20 @@ export default function SchedulePage() {
                                                     {schedule.studentName}
                                                 </Typography>
                                             </Box>
-                                            <Chip 
-                                                label={`Dosen Pembimbing: ${schedule.pembimbingName}`} 
-                                                size="small" 
-                                                variant="outlined" 
+                                            <Chip
+                                                label={`Pembimbing: ${schedule.pembimbingName}`}
+                                                size="small"
+                                                variant="outlined"
                                                 sx={{ borderStyle: "dashed" }}
                                             />
+                                            {schedule.pembimbingKeduaName && schedule.pembimbingKeduaName !== "-" && (
+                                                <Chip
+                                                    label={`Pendamping: ${schedule.pembimbingKeduaName}`}
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{ borderStyle: "dashed" }}
+                                                />
+                                            )}
                                         </Box>
 
                                         <Stack spacing={1}>
