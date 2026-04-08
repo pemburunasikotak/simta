@@ -29,6 +29,7 @@ export default function TAReviewPage() {
     const { enqueueSnackbar } = useSnackbar();
     const [submissions, setSubmissions] = useState<TTAProgress[]>([]);
     const [loading, setLoading] = useState(true);
+    console.log('CEK LOADING', loading)
     const [selectedItem, setSelectedItem] = useState<TTAProgress | null>(null);
     const [feedback, setFeedback] = useState("");
     const [status, setStatus] = useState<"reviewed" | "approved" | "rejected">("reviewed");

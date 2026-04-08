@@ -42,6 +42,7 @@ export default function ScheduleManagePage() {
     const { enqueueSnackbar } = useSnackbar();
     const [schedules, setSchedules] = useState<TSchedule[]>([]);
     const [loading, setLoading] = useState(true);
+    console.log('CEK LOADING', loading)
     const [open, setOpen] = useState(false);
     const [selectedSchedule, setSelectedSchedule] = useState<TSchedule | null>(null);
 

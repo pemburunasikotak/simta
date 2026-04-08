@@ -12,7 +12,7 @@ export const Guard: FC<TProps> = (props): ReactNode => {
 
   const permissionKeys = useMemo(
     () =>
-      session?.user?.roles?.map((role) => role.permissions.map((perm) => perm.name))?.flat() || [],
+      session?.user?.roles?.map((role) => role.permissions.map((perm: any) => perm.name))?.flat() || [],
     [session?.user?.roles],
   );
 

@@ -6,7 +6,6 @@ import { SessionUser } from "@/libs/localstorage";
 import { SessionToken } from "@/libs/cookies";
 import { usePostLoginOidc } from "@/app/(public)/auth/oauth-callback/_hooks/use-post-login-oidc";
 import { TUserItem } from "@/api/user/type";
-import { supabase } from "@/libs/supabase";
 
 type Session = {
   signin: (payload: TLoginOidcParam) => void;
@@ -36,9 +35,14 @@ const SessionProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   useEffect(() => {
     // Initial session check from LocalStorage
     const checkSession = () => {
-      const storedSession = SessionUser.get();
-      if (storedSession && storedSession.user) {
-        setSessionData(storedSession);
+      const storedUser = SessionUser.get();
+      const storedToken = SessionToken.get();
+
+      if (storedUser && storedUser.user && storedToken) {
+        setSessionData({
+          ...storedToken,
+          user: storedUser.user,
+        });
         setStatus("authenticated");
       } else {
         setStatus("unauthenticated");
@@ -55,6 +59,7 @@ const SessionProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
         setSessionData(res.data);
         setStatus("authenticated");
         SessionUser.set(res.data);
+        SessionToken.set(res.data);
         setTimeout(() => {
           navigate("/dashboard");
         }, 600);

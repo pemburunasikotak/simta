@@ -1,5 +1,4 @@
 import { TResponse, TResponsePaginate } from "@/commons/types/response";
-import { TRoleItem } from "../role/type";
 
 export type TUserItem = {
   id_user: number;
@@ -9,7 +8,7 @@ export type TUserItem = {
   role: "Administrasi" | "Dosen" | "Mahasiswa";
   id_referensi: number;
   last_login?: string;
-  
+
   // Custom joined fields
   name?: string;
   email?: string;

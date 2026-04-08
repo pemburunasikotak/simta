@@ -50,7 +50,7 @@ export const middleware = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const session = SessionUser.get();
   const userPermissions =
-    session?.user?.roles?.map((role) => role.permissions.map((perm) => perm.name))?.flat() || [];
+    session?.user?.roles?.map((role) => role.permissions.map((perm: any) => perm.name))?.flat() || [];
 
   const pathname = url.pathname;
 

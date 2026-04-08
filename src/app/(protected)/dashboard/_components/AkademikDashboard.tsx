@@ -14,6 +14,7 @@ import { supabase } from "@/libs/supabase";
 import { StatCard, STATUS_CONFIG } from "./shared";
 
 export default function AkademikDashboard({ user }: { user: TUserItem | undefined }) {
+    console.log('CEK CEK', user)
     const [submissions, setSubmissions] = useState<TTAProgress[]>([]);
     const [totalMhs, setTotalMhs] = useState(0);
     const [totalDsn, setTotalDsn] = useState(0);
